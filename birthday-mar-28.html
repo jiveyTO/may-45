@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jason's 45th Birthday</title>
+  <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Luckiest Guy', cursive;
+      background: url('images/simpsons-background.png') no-repeat center center fixed;
+      background-size: cover;
+      color: #ffde00;
+      text-align: center;
+    }
+    .container {
+      position: relative;
+      z-index: 1;
+      padding: 4em 1em;
+    }
+    h1 {
+      font-size: 3em;
+      margin: 0.5em 0;
+    }
+    .image-placeholder {
+      width: 300px;
+      height: 400px;
+      background-color: rgba(255, 255, 255, 0.3);
+      border: 3px dashed #fff;
+      margin: 1em auto;
+    }
+    h2 {
+      font-size: 2.5em;
+      margin: 0.3em 0;
+    }
+    .countdown {
+      font-size: 2em;
+      color: #ff3c3c;
+    }
+    .button {
+      background-color: #ffde00;
+      color: #000;
+      font-size: 2em;
+      padding: 0.5em 2em;
+      border-radius: 15px;
+      border: none;
+      cursor: pointer;
+      margin-top: 1.5em;
+      text-decoration: none;
+    }
+    .button:hover {
+      background-color: #ffe940;
+    }
+    .bottom-fixed {
+      position: fixed;
+      bottom: 2em;
+      left: 0;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 2;
+    }
+    #rsvp-thanks {
+      align-items: center;
+      justify-content: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 4;
+      background-color: rgba(0,0,0,0.7);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Happy 45th Birthday</h1>
+    <img src="images/jason-simpsons.png" alt="Jason Tigas Simpsons-style" class="character" style="width: 225px; height: 300px;">
+    <h2>Jason Tigas</h2>
+    <div class="bottom-fixed">
+      <a href="#" class="button" onclick="document.getElementById('rsvpPopup').style.display='flex'">RSVP</a>
+      <div class="countdown" id="countdown" style="margin-top: 0.5em;">Loading countdown...</div>
+    </div>
+  </div>
+  <button id="startGameBtn" class="button" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2;">Start Game</button>
+
+  <div id="rsvpPopup" style="display: none; flex-direction: column; align-items: center; justify-content: center; background-color: rgba(0,0,0,0.7); position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 3;">
+    <div style="background: white; padding: 2em; border-radius: 15px; color: black; max-width: 400px; width: 90%; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+      <h2 style="color: black;">RSVP</h2>
+      <form action="https://formsubmit.co/northyork2022@gmail.com" method="POST" style="display: flex; flex-direction: column; align-items: center;">
+        <input type="hidden" name="_subject" value="New Birthday RSVP!">
+        <input type="hidden" name="_captcha" value="false">
+        <input type="hidden" name="_template" value="table">
+        <input type="hidden" name="_next" value="http://localhost:5500/birthday-mar-28.html#rsvp-thanks">
+        <input type="text" name="name" placeholder="Your Name" required style="font-size: 1em; padding: 0.5em; margin: 0.5em;"><br>
+        <input type="number" name="guests" placeholder="# of Additional Guests" min="0" required style="font-size: 1em; padding: 0.5em; margin: 0.5em;"><br>
+        <div id="totalGuestsDisplay" style="color: black; font-size: 1.2em; margin-top: 0.5em;">Total Guests: 1</div>
+        <button type="submit" class="button" style="margin-top: 1em;">Submit RSVP</button>
+        <button type="button" class="button" style="margin-top: 1em;" onclick="document.getElementById('rsvpPopup').style.display='none'">Cancel</button>
+      </form>
+    </div>
+  </div>
+  <div id="rsvp-thanks" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 4; background-color: rgba(0,0,0,0.7); align-items: center; justify-content: center;">
+    <div style="background: white; padding: 2em; border-radius: 15px; color: black; max-width: 400px; width: 90%; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+      <h2 style="color: black;">🎉 Thank you for RSVP'ing!</h2>
+      <button class="button" style="margin-top: 1em;" onclick="closeRSVPThanks()">Close</button>
+    </div>
+  </div>
+
+  <script>
+    const countdownEl = document.getElementById("countdown");
+    const birthdayTargetDate = new Date("2025-05-04T00:00:00");
+    let animationId;
+    let score = 0;
+    let currentJumpPower = -16; // Start easier
+    const startGameBtn = document.getElementById("startGameBtn");
+    const obstacleImages = [
+      new Image(),
+      new Image(),
+      new Image()
+    ];
+    obstacleImages[0].src = "images/obstacle1.png";
+    obstacleImages[1].src = "images/obstacle2.png";
+    obstacleImages[2].src = "images/obstacle3.png";
+
+    function updateCountdown() {
+      const now = new Date();
+      const diff = birthdayTargetDate - now;
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diff / 1000 / 60) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+
+      countdownEl.innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+    }
+
+    setInterval(updateCountdown, 1000);
+  </script>
+  <canvas id="gameCanvas" width="800" height="400" style="display: block; margin: -3em auto 0 auto; border: 2px solid #ffde00;"></canvas>
+  <div id="gameOverScreen" style="display: none; flex-direction: column; align-items: center; justify-content: center; background-color: rgba(0,0,0,0.7); color: white; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 3;">
+    <div style="background: #333; padding: 2em; border-radius: 15px; color: white; max-width: 400px; width: 90%;">
+      <h2>Game Over!</h2>
+      <button id="replayBtn" class="button" style="margin-top: 1em;">Replay</button>
+      <button id="quitBtn" class="button" style="margin-top: 1em;">Quit</button>
+    </div>
+  </div>
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const gameOverScreen = document.getElementById("gameOverScreen");
+    const replayBtn = document.getElementById("replayBtn");
+    const quitBtn = document.getElementById("quitBtn");
+
+    let bart, obstacles, frameCount, gameSpeed, gameRunning;
+    const characterImage = new Image();
+    characterImage.src = "images/me-skateboard.png"; // Supply your own image file here
+
+    function initGame() {
+      bart = {
+        x: 240,
+        y: 190,
+        width: 78.125,
+        height: 125,
+        velocityY: 0,
+        gravity: 0.6,
+        jumpPower: currentJumpPower,
+        isJumping: false
+      };
+      obstacles = [];
+      frameCount = 0;
+      gameSpeed = 6;
+      gameRunning = true;
+      score = 0;
+      update();
+    }
+
+    function drawBart() {
+      ctx.drawImage(characterImage, bart.x, bart.y, bart.width, bart.height);
+    }
+
+    function drawObstacle(ob) {
+      ctx.save();
+      ctx.translate(ob.x + ob.width / 2, ob.y + ob.height / 2);
+      const rotation = (frameCount + ob.x) * 0.018125 % (2 * Math.PI); // give each one a unique roll
+      ctx.rotate(rotation);
+      ctx.drawImage(obstacleImages[ob.imgIndex], -ob.width / 2, -ob.height / 2, ob.width, ob.height);
+      ctx.restore();
+    }
+
+    function drawStartButton() {}
+
+    function update() {
+      if (!gameRunning) {
+        return;
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      bart.velocityY += bart.gravity;
+      bart.y += bart.velocityY;
+
+      if (bart.y > 250) {
+        bart.y = 250;
+        bart.velocityY = 0;
+        bart.isJumping = false;
+      }
+
+      drawBart();
+
+      if (frameCount % 90 === 0) {
+        const randomIndex = Math.floor(Math.random() * obstacleImages.length);
+        obstacles.push({ x: canvas.width, y: 320, width: 50, height: 50, imgIndex: randomIndex });
+      }
+
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        obstacles[i].x -= gameSpeed;
+        drawObstacle(obstacles[i]);
+
+        if (
+          bart.x < obstacles[i].x + obstacles[i].width &&
+          bart.x + bart.width > obstacles[i].x &&
+          bart.y < obstacles[i].y + obstacles[i].height &&
+          bart.y + bart.height > obstacles[i].y
+        ) {
+          gameOver();
+          return;
+        }
+
+        if (obstacles[i].x + obstacles[i].width < 0) {
+          score++;
+          if (score <= 20) {
+            const minJumpPower = -12;
+            const maxJumpPower = -16;
+            const progress = score / 20;
+            currentJumpPower = maxJumpPower + (minJumpPower - maxJumpPower) * progress;
+            bart.jumpPower = currentJumpPower;
+          }
+          obstacles.splice(i, 1);
+        }
+      }
+
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 30px 'Luckiest Guy', cursive";
+      ctx.strokeStyle = "#ffde00";
+      ctx.lineWidth = 4;
+      ctx.strokeText("Score: " + score, canvas.width - 160, 40);
+      ctx.fillText("Score: " + score, canvas.width - 160, 40);
+      
+      const difficulty = score <= 10
+        ? "Easy"
+        : score <= 20
+        ? "Normal"
+        : "Hard";
+      
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 30px 'Luckiest Guy', cursive";
+      ctx.strokeStyle = "#ffde00";
+      ctx.lineWidth = 4;
+      ctx.strokeText("Difficulty: " + difficulty, 20, 40);
+      ctx.fillText("Difficulty: " + difficulty, 20, 40);
+
+      frameCount++;
+      animationId = requestAnimationFrame(update);
+    }
+
+    function gameOver() {
+      cancelAnimationFrame(animationId);
+      gameRunning = false;
+      const scoreDisplay = document.createElement("div");
+      scoreDisplay.textContent = `Your Score: ${score}`;
+      scoreDisplay.style.marginTop = "1em";
+      scoreDisplay.style.fontSize = "2em";
+      scoreDisplay.style.color = "blue";
+      scoreDisplay.id = "finalScore";
+      const container = gameOverScreen.querySelector('div');
+      container.insertBefore(scoreDisplay, container.querySelector('#replayBtn'));
+      gameOverScreen.style.display = "flex";
+    }
+
+    startGameBtn.addEventListener("click", () => {
+      startGameBtn.style.display = "none";
+      gameRunning = true;
+      initGame();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.code === "Space" && !bart.isJumping && gameRunning) {
+        bart.velocityY = bart.jumpPower;
+        bart.isJumping = true;
+      }
+    });
+
+    replayBtn.addEventListener("click", () => {
+      const scoreEl = document.getElementById("finalScore");
+      if (scoreEl) scoreEl.remove();
+      gameOverScreen.style.display = "none";
+      gameRunning = false;
+      score = 0;
+      startGameBtn.style.display = "none";
+      gameRunning = true;
+      initGame();
+    });
+
+    quitBtn.addEventListener("click", () => {
+      const scoreEl = document.getElementById("finalScore");
+      if (scoreEl) scoreEl.remove();
+      gameOverScreen.style.display = "none";
+      gameRunning = false;
+      score = 0;
+      startGameBtn.style.display = "block";
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      update();
+    });
+
+    update(); // Initialize the canvas view
+  </script>
+  <script>
+    const guestInput = document.querySelector('input[name="guests"]');
+    const totalDisplay = document.getElementById("totalGuestsDisplay");
+
+    guestInput.addEventListener("input", () => {
+      const additionalGuests = parseInt(guestInput.value) || 0;
+      const total = 1 + additionalGuests;
+      totalDisplay.textContent = `Total Guests: ${total}`;
+    });
+  </script>
+  <script>
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        if (window.location.hash === "#rsvp-thanks") {
+    console.log("Close button clicked");
+    const thanks = document.getElementById("rsvp-thanks");
+          if (thanks) {
+            thanks.style.display = "flex";
+            thanks.scrollIntoView({ behavior: "smooth" });
+            history.replaceState(null, null, window.location.pathname); // clear the hash
+          }
+        }
+      }, 100);
+    });
+  </script>
+  <script>
+    function closeRSVPThanks() {
+      console.log("closeRSVPThanks() called");
+      const thanks = document.getElementById("rsvp-thanks");
+      if (thanks) {
+      console.log("Before hiding, current style:", window.getComputedStyle(thanks).display);
+      thanks.style.display = "none";
+      console.log("After hiding, current style:", window.getComputedStyle(thanks).display);
+      } else {
+        console.log("#rsvp-thanks not found");
+      }
+    }
+  </script>
+</body>
+</html>
