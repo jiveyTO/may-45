@@ -19,6 +19,11 @@
       z-index: 1;
       padding: 4em 1em;
     }
+    .hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
     h1 {
       font-size: 3em;
       margin: 0.5em 0;
@@ -37,6 +42,9 @@
     .countdown {
       font-size: 2em;
       color: #ff3c3c;
+    }
+    #startGameBtn {
+      margin-top: 2em;
     }
     .button {
       background-color: #ffde00;
@@ -77,9 +85,11 @@
 </head>
 <body>
   <div class="container">
-    <h1>Happy 45th Birthday</h1>
-    <img src="images/jason-simpsons.png" alt="Jason Tigas Simpsons-style" class="character" style="width: 225px; height: 300px;">
-    <h2>Jason Tigas</h2>
+    <div class="hero">
+      <h1>Happy 45th Birthday</h1>
+      <img src="images/jason-simpsons.png" alt="Jason Tigas Simpsons-style" class="character" style="width: 225px; height: 300px;">
+      <h2>Jason Tigas</h2>
+    </div>
     <button id="startGameBtn" class="button" style="margin-top: 1em;">Start Game</button>
     <div class="bottom-fixed">
       <a href="#" class="button" onclick="document.getElementById('rsvpPopup').style.display='flex'">RSVP</a>
